@@ -52,10 +52,20 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div>
+  <div class="main-page">
     <Sidebar :items="items" @showTaskTextByListId="showTaskTextByListId" />
     <Content :tasks="tasks" :selectedTaskId="selectedTaskId" />
   </div>
 </template>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.main-page {
+  display: flex;
+  margin: 0 auto;
+  margin-top: 150px;
+  max-width: 750px;
+  height: 530px;
+  background-color: #2a69a8;
+  border: 2px solid red;
+}
+</style>
