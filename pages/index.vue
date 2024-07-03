@@ -10,6 +10,7 @@ const tasks = ref([]);
 const taskListId = ref(false);
 
 const selectedTaskId = ref(null);
+const selectedTaskName = ref("");
 
 const fetchList = async () => {
   try {
@@ -45,6 +46,18 @@ const showTaskTextByListId = (id) => {
   console.log(taskListId);
 };
 
+const showCategoryNameByClick = (title) => {
+  try {
+    selectedTaskName.value = title;
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+const updateFetchList = async () => {
+  await fetchList();
+};
+
 onMounted(async () => {
   await fetchList();
   await fetchTasks();
@@ -52,19 +65,23 @@ onMounted(async () => {
 </script>
 
 <template>
-<<<<<<< HEAD
-  <div>
-=======
   <div class="main-page">
->>>>>>> 56054e1693ae2e7f6bb80808f39a5bc67adac894
-    <Sidebar :items="items" @showTaskTextByListId="showTaskTextByListId" />
-    <Content :tasks="tasks" :selectedTaskId="selectedTaskId" />
+    <Sidebar
+      :items="items"
+      @showTaskTextByListId="showTaskTextByListId"
+      @refreshItems="updateFetchList"
+      @showCategoryNameByClick="showCategoryNameByClick"
+    />
+    <Content
+      :tasks="tasks"
+      :items="items"
+      :selectedTaskId="selectedTaskId"
+      :selectedTaskName="selectedTaskName"
+      @updateCategoryTitle="updateFetchList"
+    />
   </div>
 </template>
 
-<<<<<<< HEAD
-<style lang="scss" scoped></style>
-=======
 <style lang="scss" scoped>
 .main-page {
   display: flex;
@@ -72,8 +89,6 @@ onMounted(async () => {
   margin-top: 150px;
   max-width: 750px;
   height: 530px;
-  background-color: #2a69a8;
   border: 2px solid red;
 }
 </style>
->>>>>>> 56054e1693ae2e7f6bb80808f39a5bc67adac894

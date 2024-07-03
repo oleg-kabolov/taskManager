@@ -4,18 +4,24 @@ const props = defineProps({
   listId: Number,
 });
 
-const handleClick = () => {
+const handleTaskText = () => {
   emit("showTaskTextByListId", props.listId);
 };
 
-const emit = defineEmits(["showTaskTextByListId"]);
+const handleCategoryName = () => {
+  emit("showCategoryNameByClick", props.title);
+};
+
+const clickEvents = () => {
+  handleTaskText();
+  handleCategoryName();
+};
+
+const emit = defineEmits(["showTaskTextByListId", "showCategoryNameByClick"]);
 </script>
 
 <template>
-  <div class="list__title" @click="handleClick">
-    {{ title }}
-  </div>
-  <li class="list__title" @click="handleClick">
+  <li class="list__title" @click="clickEvents">
     <span>{{ title }}</span>
   </li>
 </template>
@@ -31,6 +37,6 @@ const emit = defineEmits(["showTaskTextByListId"]);
   cursor: pointer;
 }
 .list__title > span {
-  word-break: break-all;
+  word-break: break-word;
 }
 </style>
