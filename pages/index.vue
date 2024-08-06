@@ -7,10 +7,10 @@ import { ref, onMounted } from "vue";
 const items = ref([]);
 const tasks = ref([]);
 
-const taskListId = ref(false);
-
 const selectedTaskId = ref(null);
 const selectedTaskName = ref("");
+
+const emit = defineEmits(["refreshItems"]);
 
 const fetchList = async () => {
   try {
@@ -34,16 +34,23 @@ const fetchTasks = async () => {
 
 const showTaskTextByListId = (id) => {
   try {
-    tasks.value.forEach((item) => {
-      if (item.listId === id) {
-        selectedTaskId.value = id;
+    let found = false;
+    tasks.value.forEach((task) => {
+      if (task.listId === id) {
+        items.value.forEach((category) => {
+          if (category.listId === task.listId) {
+            found = true;
+            selectedTaskId.value = id;
+          }
+        });
       }
     });
+    if (!found) {
+      selectedTaskId.value = null;
+    }
   } catch (err) {
     console.log(err);
   }
-
-  console.log(taskListId);
 };
 
 const showCategoryNameByClick = (title) => {
@@ -57,6 +64,14 @@ const showCategoryNameByClick = (title) => {
 const updateFetchList = async () => {
   await fetchList();
 };
+const updateTaskList = async () => {
+  await fetchTasks();
+};
+
+const refreshAll = async () => {
+  await fetchList();
+  await fetchTasks();
+};
 
 onMounted(async () => {
   await fetchList();
@@ -68,6 +83,7 @@ onMounted(async () => {
   <div class="main-page">
     <Sidebar
       :items="items"
+      :tasks="tasks"
       @showTaskTextByListId="showTaskTextByListId"
       @refreshItems="updateFetchList"
       @showCategoryNameByClick="showCategoryNameByClick"
@@ -78,6 +94,8 @@ onMounted(async () => {
       :selectedTaskId="selectedTaskId"
       :selectedTaskName="selectedTaskName"
       @updateCategoryTitle="updateFetchList"
+      @refreshItems="refreshAll"
+      @updateTaskList="updateTaskList"
     />
   </div>
 </template>

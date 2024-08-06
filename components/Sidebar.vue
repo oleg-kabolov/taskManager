@@ -4,6 +4,7 @@ import { ref } from "vue";
 
 const props = defineProps({
   items: Array,
+  tasks: Array,
 });
 
 const taskListOpen = ref(false);
@@ -30,16 +31,25 @@ const addCategoryTask = async (submittedNewTask) => {
   try {
     const obj = {
       id: props.items.length + 1,
-      listId: props.items.length + 1,
       title: submittedNewTask,
+      listId: props.items.length + 1,
+    };
+    const defaultTask = {
+      id: props.tasks.length + 1,
+      listId: props.items.length + 1,
+      text: "Новая задача",
     };
     const existingItem = props.items.find(
       (item) => item.title === submittedNewTask
     );
-    if (!existingItem) {
+    if (existingItem) {
+      alert("Такая категория уже существует придумайте другое название!");
+    } else {
       await axios.post("https://f39e7214ce616ae7.mokky.dev/list", obj);
+      await axios.post("https://f39e7214ce616ae7.mokky.dev/tasks", defaultTask);
     }
     newTaskValue.value = "";
+    console.log(props.items.length);
 
     if (newTaskValue.value) {
       addTaskInput.value.blur();
@@ -67,6 +77,7 @@ const removePlaceholder = () => {
 };
 const addPlaceholder = () => {
   inputPlaceholder.value = "+  Добавить папку";
+  newTaskValue.value = "";
 };
 </script>
 
@@ -77,7 +88,7 @@ const addPlaceholder = () => {
         <h2 @click="showTaskList"><span>Все задачи</span></h2>
         <ul class="dropdown-list" v-if="taskListOpen">
           <CategoryTaskList
-            v-for="item in props.items"
+            v-for="item in items"
             :key="item.id"
             :title="item.title"
             :listId="item.listId"
@@ -164,6 +175,7 @@ const addPlaceholder = () => {
 }
 .add-task-btn > input {
   border: none;
+  max-width: 180px;
   font-size: 1.3rem;
   cursor: pointer;
   outline: none;
