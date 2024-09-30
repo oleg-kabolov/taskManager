@@ -22,6 +22,10 @@ h2 {
 li {
   list-style: none;
 }
+ul {
+  margin: 0;
+  padding: 0;
+}
 
 hr {
   box-sizing: content-box; /* 1 */
@@ -78,6 +82,7 @@ sup {
 
 img {
   border-style: none;
+  width: 100%;
 }
 
 button,

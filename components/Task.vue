@@ -1,34 +1,43 @@
 <script setup>
 const markResolvedTask = ref(false);
 
-defineProps({
+const isChecked = ref(false);
+
+const props = defineProps({
   text: String,
+  tasks: Array,
   listId: Number,
+  color: String,
   selectedTaskId: Number,
+  selectedTaskName: String,
 });
 
 const emit = defineEmits(["resolvedTask"]);
 
 const crossedMarkedTask = () => {
-  markResolvedTask.value = !markResolvedTask.value;
+  markResolvedTask.value = true;
+  emitResetMarkResolvedTask();
   emit("resolvedTask");
 };
 const markResolvedTaskClass = computed(() => {
-  if (markResolvedTask.value) {
-    return "crossed-out";
-  } else {
-    return "";
-  }
+  markResolvedTask.value ? "crossed-out" : "";
 });
+
+const resetMarkResolvedTask = () => {
+  markResolvedTask.value = false;
+  isChecked.value = false;
+};
+
+const emitResetMarkResolvedTask = () => {
+  resetMarkResolvedTask();
+  emit("resetMarkResolvedTask");
+};
 </script>
 
 <template>
-  <div
-    v-if="listId === selectedTaskId && listId !== null"
-    class="task-description"
-  >
+  <div v-if="listId === selectedTaskId && listId" class="task-description">
     <label class="checkbox-container">
-      <input @click="crossedMarkedTask" type="checkbox" />
+      <input v-model="isChecked" @click="crossedMarkedTask" type="checkbox" />
       <span class="checkmark"></span>
       <span :class="markResolvedTaskClass">{{ text }}</span>
     </label>

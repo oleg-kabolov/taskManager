@@ -10,7 +10,7 @@ const tasks = ref([]);
 const selectedTaskId = ref(null);
 const selectedTaskName = ref("");
 
-const emit = defineEmits(["refreshItems"]);
+const emit = defineEmits(["refreshItems", "showAllTasks"]);
 
 const fetchList = async () => {
   try {
@@ -46,10 +46,46 @@ const showTaskTextByListId = (id) => {
       }
     });
     if (!found) {
-      selectedTaskId.value = null;
+      selectedTaskId.value = id;
     }
   } catch (err) {
     console.log(err);
+  }
+};
+
+const removeCategoryAndRelatedTasks = async () => {
+  try {
+    const listId = selectedTaskId.value;
+    if (!listId) {
+      console.log("selectedTaskId is null or undefined");
+      return;
+    }
+    const obj = {
+      listId: selectedTaskId.value,
+    };
+    await showTaskTextByListId(listId);
+
+    const taskListId = tasks.value.find((item) => item.listId === listId);
+    const categoryListId = items.value.find((item) => item.listId === listId);
+
+    if (taskListId) {
+      await axios.delete(
+        `https://f39e7214ce616ae7.mokky.dev/tasks/${taskListId.id}`,
+        obj
+      );
+    }
+
+    if (categoryListId) {
+      await axios.delete(
+        `https://f39e7214ce616ae7.mokky.dev/list/${categoryListId.id}`,
+        obj
+      );
+    }
+
+    refreshAll();
+  } catch (err) {
+    console.log(err);
+    console.log(selectedTaskId.value);
   }
 };
 
@@ -87,6 +123,8 @@ onMounted(async () => {
       @showTaskTextByListId="showTaskTextByListId"
       @refreshItems="updateFetchList"
       @showCategoryNameByClick="showCategoryNameByClick"
+      :selectedTaskId="selectedTaskId"
+      @deleteCategory="removeCategoryAndRelatedTasks"
     />
     <Content
       :tasks="tasks"
@@ -96,6 +134,7 @@ onMounted(async () => {
       @updateCategoryTitle="updateFetchList"
       @refreshItems="refreshAll"
       @updateTaskList="updateTaskList"
+      @deleteCategory="removeCategoryAndRelatedTasks"
     />
   </div>
 </template>
@@ -107,6 +146,8 @@ onMounted(async () => {
   margin-top: 150px;
   max-width: 750px;
   height: 530px;
-  border: 2px solid red;
+}
+body {
+  background-color: #e5e5e5;
 }
 </style>

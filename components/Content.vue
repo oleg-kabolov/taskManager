@@ -2,12 +2,15 @@
 import Task from "./Task.vue";
 import { ref, computed } from "vue";
 import axios from "axios";
+import TaskListHeader from "./TaskListHeader.vue";
 
 const props = defineProps({
   tasks: Array,
   items: Array,
+  color: String,
   selectedTaskId: Number,
   selectedTaskName: String,
+  showAllTasks: Boolean,
 });
 
 const newCategoryValue = ref("");
@@ -19,6 +22,8 @@ const addTaskBtn = ref(false);
 const newTaskValue = ref("");
 const subbmittedNewTaskValue = ref("");
 
+const recievedShowTaskValue = ref(false);
+
 const isFocused = ref(false);
 const focusedPlaceholder = "";
 
@@ -28,58 +33,24 @@ const emit = defineEmits([
   "updateCategoryTitle",
   "updateTaskList",
   "resolvedTask",
+  "refreshItems",
 ]);
-
-const taskCategoryPlaceholder = computed(() => {
-  return isFocused.value ? focusedPlaceholder : props.selectedTaskName;
-});
-
-const handleFocus = () => {
-  isFocused.value = true;
-};
-
-const handleBlur = () => {
-  isFocused.value = false;
-  newCategoryValue.value = "";
-};
 
 const showAddTaskBtn = () => {
   addTaskBtn.value = false;
 };
 
+const taskCategoryTitleSorted = computed(() => {
+  return props.tasks.filter((item) => item.listId === props.selectedTaskId);
+});
+const taskCategorySortTasks = computed(() => {
+  props.tasks.filter((item) => {
+    item.listId === props.selectedTaskId;
+  });
+});
+
 const submitCategoryValue = () => {
   submittedCategoryValue.value = newCategoryValue.value;
-};
-
-const handleCategoryInputMethods = () => {
-  submitCategoryValue();
-  changeCategoryName(submittedCategoryValue.value);
-};
-
-const changeCategoryName = async (submittedCategoryValue) => {
-  try {
-    const obj = {
-      title: submittedCategoryValue,
-    };
-    const categoryName = props.items.find(
-      (item) => item.title === props.selectedTaskName
-    );
-    if (categoryName) {
-      await axios.patch(
-        `https://f39e7214ce616ae7.mokky.dev/list/${categoryName.id}`,
-        obj
-      );
-    }
-
-    emit("updateCategoryTitle");
-    newCategoryValue.value = "";
-
-    if (newCategoryValue.value) {
-      taskCategoryNameInput.value.blur();
-    }
-  } catch (err) {
-    console.log(err);
-  }
 };
 
 const submitTaskValue = () => {
@@ -87,12 +58,16 @@ const submitTaskValue = () => {
 };
 const handleMethodsByAddBtn = () => {
   showAddTaskBtn();
-  submitTaskValue();
-  addNewTask(subbmittedNewTaskValue.value);
+  props.selectedTaskId
+    ? (submitTaskValue(), addNewTask(subbmittedNewTaskValue.value))
+    : alert("Выберите категорию");
 };
 const handleMethodsAbortBtn = () => {
   showAddTaskBtn();
   submitTaskValue();
+};
+const showFullList = (value) => {
+  recievedShowTaskValue.value = value;
 };
 
 const addNewTask = async (subbmittedNewTaskValue) => {
@@ -123,6 +98,9 @@ const removeResolvedTask = async () => {
       `https://f39e7214ce616ae7.mokky.dev/tasks/${listId.id}`,
       obj
     );
+
+    emit("resetMarkResolvedTask");
+
     emit("updateTaskList");
   } catch (err) {
     console.log(err);
@@ -132,32 +110,32 @@ const removeResolvedTask = async () => {
 
 <template>
   <div class="main-page__content">
-    <div class="main-page__header">
-      <div>
-        <input
-          ref="taskCategoryNameInput"
-          class="main-page__content-title"
-          v-model="newCategoryValue"
-          type="text"
-          :placeholder="taskCategoryPlaceholder"
-          @keydown.enter="handleCategoryInputMethods"
-          @focus="handleFocus"
-          @blur="handleBlur"
-        />
-      </div>
-      <div>
-        <img src="../assets/img/pencil.svg" alt="" />
-      </div>
-    </div>
     <div class="main-page__tasks">
+      <TaskListHeader
+        v-if="taskCategoryTitleSorted"
+        :tasks="tasks"
+        :items="items"
+        :selectedTaskId="selectedTaskId"
+        :selectedTaskName="selectedTaskName"
+        @refreshItems="emit('refreshItems')"
+        @updateTaskList="emit('updateTaskList')"
+        @updateCategoryTitle="emit('updateCategoryTitle')"
+        @showAllTasks="showFullList"
+      />
       <Task
         v-for="task in tasks"
         :key="task.listId"
         :text="task.text"
         :listId="task.listId"
+        :tasks="tasks"
+        :color="task.color"
         :selectedTaskId="selectedTaskId"
+        :selectedTaskName="selectedTaskName"
         @resolvedTask="removeResolvedTask"
+        @resetMarkResolvedTask="emit('resetMarkResolvedTask')"
+        @showAllTasks="showFullList"
       />
+      <div class="main-page__all-tasks"></div>
     </div>
     <div class="main-page__content-addTaskWrapper">
       <div
@@ -199,33 +177,6 @@ const removeResolvedTask = async () => {
   flex-direction: column;
   margin-left: 102px;
   padding-top: 60px;
-}
-.main-page__content-title {
-  font-family: $headFontStyle;
-  color: #000;
-  font-size: 1.8rem;
-  max-width: 280px;
-  margin-top: 16px;
-  margin-bottom: 10px;
-  padding-right: 20px;
-  outline: none;
-  border: none;
-  background: transparent;
-  border-bottom: none;
-}
-.main-page__header {
-  display: flex;
-  align-items: baseline;
-  max-width: 280px;
-  border-bottom: #767676 1px solid;
-  margin-bottom: 40px;
-}
-.main-page__header input {
-  cursor: pointer;
-}
-
-.main-page__header div {
-  margin-top: 38px;
 }
 .main-page__content-addTask {
   display: flex;
